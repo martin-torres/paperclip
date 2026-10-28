@@ -1,0 +1,25 @@
+# Personal VPS compose file.
+# The host publishes Paperclip on 127.0.0.1 only.
+# The container listens on 0.0.0.0 so Docker can forward that port.
+# Runtime memory is capped. The image build itself is not capped.
+name: paperclip-personal
+
+services:
+  paperclip:
+    container_name: paperclip-personal
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: paperclip-personal:local
+    restart: unless-stopped
+    mem_limit: ${PAPERCLIP_DOCKER_MEMORY:-1g}
+    memswap_limit: ${PAPERCLIP_DOCKER_MEMORY:-1g}
+    mem_reservation: ${PAPERCLIP_DOCKER_MEMORY_RESERVATION:-512m}
+    pids_limit: 1024
+    stop_grace_period: 90s
+    ports:
+      - "127.0.0.1:${PAPERCLIP_PUBLISH_PORT:-9000}:3100"
+    env_file:
+      - ${PAPERCLIP_DOCKER_ENV_FILE:?set PAPERCLIP_DOCKER_ENV_FILE}
+    volumes:
+      - ${PAPERCLIP_DOCKER_DATA_DIR:?set PAPERCLIP_DOCKER_DATA_DIR}:/paperclip
