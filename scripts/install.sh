@@ -1,6 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Personal-fork setup is scripts/personal/install.sh.
+# The published paperclip.ing installer below is unchanged unless
+# --personal, --source, or --docker is present.
+_paperclip_personal=0
+for _paperclip_arg in "$@"; do
+  case "$_paperclip_arg" in
+    --personal|--source|--docker)
+      _paperclip_personal=1
+      ;;
+  esac
+done
+if [ "$_paperclip_personal" = "1" ]; then
+  if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+    _paperclip_personal_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/personal/install.sh"
+  else
+    _paperclip_personal_script=""
+  fi
+  if [ -z "${_paperclip_personal_script}" ] || [ ! -f "${_paperclip_personal_script}" ]; then
+    printf '%s\n' "[paperclip] error: --personal and --docker require scripts/personal/install.sh from a checkout." >&2
+    printf '%s\n' "[paperclip] Linux or macOS: curl -fsSL https://raw.githubusercontent.com/martin-torres/paperclip/master/scripts/personal/install.sh | bash" >&2
+    printf '%s\n' "[paperclip] VPS Docker: curl -fsSL https://raw.githubusercontent.com/martin-torres/paperclip/master/scripts/personal/install.sh | bash -s -- --docker" >&2
+    exit 1
+  fi
+  exec /usr/bin/env bash "${_paperclip_personal_script}" "$@"
+fi
+unset _paperclip_personal _paperclip_arg _paperclip_personal_script
+
 MIN_NODE_MAJOR=24
 MIN_NODE_MINOR=11
 MIN_NODE_PATCH=0
